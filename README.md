@@ -1,4 +1,4 @@
 # dbenginesmatrix
 db name x features
 
-datasource: db-engines.com @2016-01
+datasource: http://db-engines.com @2016-01
