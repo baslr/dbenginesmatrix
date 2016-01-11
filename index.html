@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+  <head>
+    <style>
+      rect.bordered {
+        stroke: #E6E6E6;
+        stroke-width:2px;   
+      }
+
+      text.mono {
+        font-size: 9pt;
+        font-family: Helvetica;
+        fill: #aaa;
+      }
+
+      text.axis-workweek {
+        fill: #000;
+      }
+
+      text.axis-worktime {
+        fill: #000;
+      }
+    </style>
+    <script src="d3.js"></script>
+  </head>
+  <body>
+    <div id="chart"></div>
+    <script type="text/javascript">
+
+      /* code from http://bl.ocks.org/tjdecke/5558084 */
+
+      d3.json('dbengines.json', (e, data) => {
+        console.log(data);
+
+        var days = Object.keys(data).sort();
+
+        var times = {},
+        newData = [];
+        for(var key in data) {
+          for(var attr in data[key]) {
+            times[attr] = 1;
+          }
+        }
+        times = Object.keys(times).sort();
+        var rms = ['', 'Name', 'License', 'Description', 'Technical documentation', 'Current release','Website', 'DB-Engines Ranking', 'Initial release','Developer', 'DB-Engines Ranking Trend Chart'];
+        for(var i in rms) {
+          var idx = times.indexOf(rms[i]);
+          times.splice(idx,1);
+        }
+
+
+        var i = 0;
+
+        for(var key in days) {
+          for(var attr in times) {
+            newData.push({val:data[days[key]][ times[attr]], db:days[key], _id:i++ });
+          }
+          console.log(days[key]);
+        }
+
+        console.log(days);
+        console.log(times);
+        console.log(newData);
+
+        
+
+
+      var margin = { top: 200, right: 200, bottom: 100, left: 240 },
+          width = 960 - margin.left - margin.right,
+          height = days.length * 24 
+
+
+        var gridSize = 24,
+          buckets = 9,
+          colors = ["#ffffd9","#edf8b1","#c7e9b4","#7fcdbb","#41b6c4","#1d91c0","#225ea8","#253494","#081d58"]; // alternatively colorbrewer.YlGnBu[9]
+
+
+
+
+      var svg = d3.select("#chart").append("svg")
+          .attr("width", width + margin.left + margin.right)
+          .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+        var dayLabels = svg.selectAll(".dayLabel")
+          .data(days)
+          .enter().append("text")
+            .text(function (d) { return d; })
+            .attr("x", 0)
+            .attr("y", function (d, i) { return i * gridSize; })
+            .style("text-anchor", "end")
+            .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
+            .attr("class", "dayLabel mono axis axis-workweek");
+
+
+        var timeLabels = svg.selectAll(".timeLabel")
+            .data(times)
+            .enter().append("text")
+              .text(function(d) { return d; })
+              .attr("dy", function(d, i) { return i * gridSize + 12; })
+              .attr("dx", 0)
+              .style("text-anchor", "left")
+              .attr("transform", (d, i) => { return " rotate(-90)"; }) 
+              .attr("class", "timeLabel mono axis axis-worktime");
+
+        var cards = svg.selectAll(".hour")
+        .data(newData, (d) => { return d._id; });
+
+          // cards.append("title");
+
+          cards.enter().append("rect")
+              .attr("x", function(d, i) { return (d._id % times.length) * gridSize; })
+              .attr("y", function(d, i) { return Math.floor(d._id / times.length) * gridSize; })
+              .attr("rx", 0)
+              .attr("ry", 0)
+              .attr("class", "hour")
+              .attr("width", gridSize)
+              .attr("height", gridSize)
+              .style("fill", (d) => {
+
+
+                if(!d.val) d.val = '';
+
+                if(d.val == 'base') console.log(d);
+
+
+                switch(d.val.trim().toLowerCase()) {
+                  case 'no':
+                    return '#ff0000';
+                  case 'yes':
+                  case 'acid':
+                    return '#00ff00';
+
+
+
+
+                  default:
+                  return '#ccc';
+                }
+              });
+          
+          cards.exit().remove();
+
+
+
+
+      });
+
+
+
+
+
+      
+      
+    </script>
+  </body>
+</html>
